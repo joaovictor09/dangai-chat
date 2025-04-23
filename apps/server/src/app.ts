@@ -8,11 +8,11 @@ app.register(fastifyWebsocket)
 const clients = new Set<WebSocket>()
 
 app.register(async function (fastify) {
-  fastify.get('/ws', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
-    clients.add(socket)
+fastify.get('/ws', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+  clients.add(socket)
 
-    socket.on('message', (buffer) => {
-      const message = buffer.toString('utf8')
+  socket.on('message', (buffer) => {
+    const message = buffer.toString('utf8')
 
       try {
         const data = JSON.parse(message)
