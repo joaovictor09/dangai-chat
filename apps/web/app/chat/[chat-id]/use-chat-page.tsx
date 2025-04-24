@@ -1,4 +1,4 @@
-import  { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 export type Message = {
@@ -11,73 +11,75 @@ export type Message = {
 export function useChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [wsState, setWsState] = useState<number>(WebSocket.CONNECTING);
-  const [socket, setSocket] = useState<WebSocket | null>(null); // Guardando o WebSocket no estado
-  const [userId, setUserId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnecting = useRef(false);
   const socketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL!;
 
-  const reconnecting = useRef(false); // Usado para controlar a reconexão\
-
-  // Conecta ao WebSocket uma vez quando o componente for montado
   useEffect(() => {
-    // Se já existir uma conexão, não cria uma nova
-    if (socket) return;
+    setUserId(uuidv4());
 
-    const newSocket = new WebSocket(socketUrl); // Criando o WebSocket
-    setUserId(uuidv4())
-    setSocket(newSocket); // Atualizando o estado com a nova instância do WebSocket
+    function connectWebSocket() {
+      const ws = new WebSocket(socketUrl);
+      socketRef.current = ws;
 
-    newSocket.onopen = () => {
-      console.log("Conexão WebSocket estabelecida.");
-      setWsState(newSocket.OPEN);
-      reconnecting.current = false; // A reconexão foi bem-sucedida
-    };
+      ws.onopen = () => {
+        console.log("WebSocket conectado.");
+        setWsState(ws.OPEN);
+        reconnecting.current = false;
+      };
 
-    newSocket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setMessages((prevMessages) => [...prevMessages, {...data}]);
-    };
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setMessages(prev => [...prev, { ...data }]);
+        } catch (e) {
+          console.error("Erro ao parsear mensagem:", e);
+        }
+      };
 
-    newSocket.onclose = () => {
-      console.log("Conexão WebSocket perdida.");
-      setWsState(newSocket.CLOSED);
-      // Tentar reconectar, mas apenas se não estiver tentando reconectar já
-      console.log("Tentando reconectar...");
-      setTimeout(() => {
-        reconnecting.current = false; // Permitir nova tentativa de reconexão
-        connectWebSocket(); // Chama a função de reconexão
-      }, 5000); // Espera 5 segundos para reconectar
-    };
+      ws.onclose = () => {
+        console.warn("WebSocket desconectado.");
+        setWsState(ws.CLOSED);
 
-    newSocket.onerror = (error) => {
-      console.error("Erro no WebSocket:", error);
-      newSocket.close();
-      setWsState(newSocket.CLOSED);
-    };
+        if (!reconnecting.current) {
+          reconnecting.current = true;
+          setTimeout(() => {
+            console.log("Tentando reconectar...");
+            connectWebSocket();
+          }, 5000);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error("Erro no WebSocket:", error);
+        ws.close();
+      };
+    }
+
+    connectWebSocket();
 
     return () => {
-      if (newSocket.readyState === WebSocket.OPEN) {
-        newSocket.close();
-      }
+      socketRef.current?.close();
     };
-  }, [socket]); // O useEffect é chamado apenas uma vez para a criação do socket
+  }, [socketUrl]);
 
-  // Função de reconexão manual
-  function connectWebSocket() {
-    if (!socket || socket.readyState === WebSocket.CLOSED) {
-      const newSocket = new WebSocket(socketUrl); // Criando o WebSocket
-      setSocket(newSocket); // Atualizando o estado com a nova instância do WebSocket
-    }
-  }
-
-  // Enviar mensagem ao WebSocket
   function sendMessage(message: string) {
-    if (!message) return;
-    const messageId = uuidv4()
+    if (!message || !userId) return;
+
+    const messageId = uuidv4();
+    const socket = socketRef.current;
 
     if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: "message", id: messageId, text: message, userId: userId }));
+      socket.send(JSON.stringify({
+        type: "message",
+        id: messageId,
+        text: message,
+        userId: userId,
+      }));
     } else {
-      console.warn("WebSocket não está conectado ainda.");
+      console.warn("WebSocket não está conectado.");
     }
   }
 
@@ -88,6 +90,6 @@ export function useChatPage() {
     isConnected,
     sendMessage,
     messages,
-    userId
+    userId,
   };
 }
