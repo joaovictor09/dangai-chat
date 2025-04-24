@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { v4 as uuidv4 } from 'uuid';
+import hotkeys from 'hotkeys-js';
 
 export type Message = {
   id: string
@@ -16,6 +17,11 @@ export function useChatPage() {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnecting = useRef(false);
   const socketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL!;
+
+  const clearChat = useCallback((e: KeyboardEvent) => {
+    e.preventDefault();
+    setMessages([]);
+  }, []);
 
   useEffect(() => {
     setUserId(uuidv4());
@@ -64,6 +70,19 @@ export function useChatPage() {
       socketRef.current?.close();
     };
   }, [socketUrl]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Permitir atalhos mesmo em inputs
+    hotkeys.filter = () => true;
+
+    hotkeys('ctrl+l', clearChat);
+    return () => {
+      hotkeys.unbind('ctrl+l');
+    };
+  }, [clearChat]);
+
 
   function sendMessage(message: string) {
     if (!message || !userId) return;
