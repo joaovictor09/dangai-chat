@@ -1,5 +1,5 @@
 import  { useState, useEffect, useRef } from "react";
-import {randomUUID} from 'node:crypto'
+import { v4 as uuidv4 } from 'uuid';
 
 export type Message = {
   id: string
@@ -22,7 +22,7 @@ export function useChatPage() {
     if (socket) return;
 
     const newSocket = new WebSocket(socketUrl); // Criando o WebSocket
-    setUserId(randomUUID())
+    setUserId(uuidv4())
     setSocket(newSocket); // Atualizando o estado com a nova instância do WebSocket
 
     newSocket.onopen = () => {
@@ -74,7 +74,7 @@ export function useChatPage() {
   // Enviar mensagem ao WebSocket
   function sendMessage(message: string) {
     if (!message) return;
-    const messageId = randomUUID()
+    const messageId = uuidv4()
 
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: "message", id: messageId, text: message, userId: userId }));
