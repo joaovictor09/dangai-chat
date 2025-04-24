@@ -18,8 +18,8 @@ export function useChatPage() {
   const reconnecting = useRef(false);
   const socketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL!;
 
-  const clearChat = useCallback((e: KeyboardEvent) => {
-    e.preventDefault();
+  const clearChat = useCallback((e?: KeyboardEvent) => {
+    if (e) e.preventDefault();
     setMessages([]);
   }, []);
 
@@ -37,9 +37,16 @@ export function useChatPage() {
       };
 
       ws.onmessage = (event) => {
+
         try {
           const data = JSON.parse(event.data);
-          setMessages(prev => [...prev, { ...data }]);
+          console.log(data)
+          if (data.type === 'message') {
+            setMessages(prev => [...prev, { ...data }]);
+          }
+          if (data.type === 'clear') {
+            clearChat()
+          }
         } catch (e) {
           console.error("Erro ao parsear mensagem:", e);
         }
@@ -77,7 +84,14 @@ export function useChatPage() {
     // Permitir atalhos mesmo em inputs
     hotkeys.filter = () => true;
 
-    hotkeys('ctrl+l', clearChat);
+    hotkeys('ctrl+l', (e) => {
+      clearChat(e)
+      const socket = socketRef.current;
+      socket?.send(JSON.stringify({
+        type: 'clear'
+      }))
+    }
+  );
     return () => {
       hotkeys.unbind('ctrl+l');
     };

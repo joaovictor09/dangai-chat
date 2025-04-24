@@ -27,11 +27,20 @@ app.register(async function (fastify) {
 
     socket.on('message', (buffer) => {
       const message = buffer.toString('utf8')
+
       try {
         const data = JSON.parse(message)
 
         for (const client of clients) {
           if (client.readyState === client.OPEN) {
+            if (data.type === 'clear') {
+              client.send(JSON.stringify({
+                type: 'clear'
+              }))
+
+              return
+            }
+
             client.send(JSON.stringify({
               type: 'message',
               id: data.id,
