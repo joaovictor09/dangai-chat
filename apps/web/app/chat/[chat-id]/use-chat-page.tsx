@@ -37,13 +37,13 @@ export function useChatPage() {
       };
 
       ws.onmessage = (event) => {
-
         try {
           const data = JSON.parse(event.data);
-          console.log(data)
+
           if (data.type === 'message') {
             setMessages(prev => [...prev, { ...data }]);
           }
+
           if (data.type === 'clear') {
             clearChat()
           }
@@ -79,7 +79,8 @@ export function useChatPage() {
   }, [socketUrl]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    const socket = socketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return
 
     // Permitir atalhos mesmo em inputs
     hotkeys.filter = () => true;

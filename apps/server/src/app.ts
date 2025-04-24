@@ -36,9 +36,8 @@ app.register(async function (fastify) {
             if (data.type === 'clear') {
               client.send(JSON.stringify({
                 type: 'clear'
-              }))
-
-              return
+              }));
+              continue; // Continua enviando para os outros clientes
             }
 
             client.send(JSON.stringify({
@@ -47,9 +46,10 @@ app.register(async function (fastify) {
               text: data.text,
               userId: data.userId,
               date: new Date().toISOString()
-            }))
+            }));
           }
         }
+
       } catch (err) {
         console.error('❌ Erro ao processar mensagem:', err)
       }
