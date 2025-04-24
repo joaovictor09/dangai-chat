@@ -13,7 +13,10 @@ export function useChatPage() {
   const [wsState, setWsState] = useState<number>(WebSocket.CONNECTING);
   const [socket, setSocket] = useState<WebSocket | null>(null); // Guardando o WebSocket no estado
   const [userId, setUserId] = useState<string | null>(null)
-  const socketUrl = "ws://localhost:3333/ws";
+  const socketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL!;
+
+  console.log(socketUrl)
+
   const reconnecting = useRef(false); // Usado para controlar a reconexão\
 
   // Conecta ao WebSocket uma vez quando o componente for montado
