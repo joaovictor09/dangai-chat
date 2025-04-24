@@ -12,7 +12,9 @@ export type Message = {
 export function useChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [wsState, setWsState] = useState<number>(WebSocket.CONNECTING);
-  const [userId, setUserId] = useState<string | null>(null);
+  const initialUserId = useRef(uuidv4());
+  const [userId] = useState(initialUserId.current);
+
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnecting = useRef(false);
@@ -24,8 +26,6 @@ export function useChatPage() {
   }, []);
 
   useEffect(() => {
-    setUserId(uuidv4());
-
     function connectWebSocket() {
       const ws = new WebSocket(socketUrl);
       socketRef.current = ws;
@@ -41,11 +41,13 @@ export function useChatPage() {
           const data = JSON.parse(event.data);
 
           if (data.type === 'message') {
+            setMessages(prev => [...prev, { ...data }]);
+
+            if (data.userId === userId) return
             const audio = new Audio('/notification.wav');
             audio.play().catch((err) => {
               console.warn("Não foi possível tocar o som:", err);
             });
-            setMessages(prev => [...prev, { ...data }]);
           }
 
           if (data.type === 'clear') {
