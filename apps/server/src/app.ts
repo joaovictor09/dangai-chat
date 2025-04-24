@@ -21,7 +21,10 @@ fastify.get('/ws', { websocket: true }, (socket /* WebSocket */, req /* FastifyR
           if (client.readyState === client.OPEN) {
             client.send(JSON.stringify({
               type: 'message',
-              text: data.text
+              id: data.id,
+              text: data.text,
+              userId: data.userId,
+              date: new Date().toISOString()
             }))
           }
         }

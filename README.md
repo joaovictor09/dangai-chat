@@ -1,31 +1,16 @@
-# shadcn/ui monorepo template
+# Dangai Chat
 
-This template is for creating a monorepo with shadcn/ui.
+Um chat simples e temporário, onde as mensagens não são salvas e desaparecem assim que a sala é fechada. Ideal para conversas rápidas e privadas.
 
-## Usage
+## ✨ Funcionalidades
 
-```bash
-pnpm dlx shadcn@latest init
-```
+- Chat em tempo real via WebSocket
+- Interface leve e responsiva
+- Mensagens **não persistem**
+- Envio de mensagens com Enter ou botão
+- Reconexão automática em caso de desconexão do WebSocket
 
-## Adding components
+## 🛠️ Tecnologias
 
-To add components to your app, run the following command at the root of your `web` app:
-
-```bash
-pnpm dlx shadcn@latest add button -c apps/web
-```
-
-This will place the ui components in the `packages/ui/src/components` directory.
-
-## Tailwind
-
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
-
-```tsx
-import { Button } from "@workspace/ui/components/button"
-```
+- Nextjs e Fastify
+- WebSocket para comunicação em tempo real
