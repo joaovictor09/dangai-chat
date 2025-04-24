@@ -85,25 +85,21 @@ export function useChatPage() {
   }, [socketUrl]);
 
   useEffect(() => {
-    const socket = socketRef.current;
-    if (!socket || socket.readyState !== WebSocket.OPEN) return
-
     // Permitir atalhos mesmo em inputs
     hotkeys.filter = () => true;
 
     hotkeys('ctrl+l', (e) => {
-      clearChat(e)
+      clearChat(e);
       const socket = socketRef.current;
-      socket?.send(JSON.stringify({
-        type: 'clear'
-      }))
-    }
-  );
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'clear' }));
+      }
+    });
+
     return () => {
       hotkeys.unbind('ctrl+l');
     };
   }, [clearChat]);
-
 
   function sendMessage(message: string) {
     if (!message || !userId) return;
