@@ -3,9 +3,16 @@
 import { useChatPage } from "./use-chat-page";
 import { Chat } from "./chat";
 import { Message } from "./message";
+import { useEffect, useRef } from "react";
 
 export default function ChatPage() {
   const { messages, userId , sendMessage} = useChatPage()
+
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   return (
     <div className="max-w-lg mx-auto flex flex-col h-screen py-5 gap-4">
@@ -14,6 +21,7 @@ export default function ChatPage() {
         {messages.map(message => (
           <Message message={message} key={message.id} userId={userId ?? ''} />
         ))}
+        <div ref={bottomRef} />
       </ul>
 
       {/* Input de chat fixado no final */}
