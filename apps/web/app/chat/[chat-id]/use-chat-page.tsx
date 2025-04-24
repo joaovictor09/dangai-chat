@@ -41,6 +41,10 @@ export function useChatPage() {
           const data = JSON.parse(event.data);
 
           if (data.type === 'message') {
+            const audio = new Audio('/notification.wav');
+            audio.play().catch((err) => {
+              console.warn("Não foi possível tocar o som:", err);
+            });
             setMessages(prev => [...prev, { ...data }]);
           }
 
