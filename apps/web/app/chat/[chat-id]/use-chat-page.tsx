@@ -15,8 +15,6 @@ export function useChatPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const socketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL!;
 
-  console.log(socketUrl)
-
   const reconnecting = useRef(false); // Usado para controlar a reconexão\
 
   // Conecta ao WebSocket uma vez quando o componente for montado
@@ -43,14 +41,11 @@ export function useChatPage() {
       console.log("Conexão WebSocket perdida.");
       setWsState(newSocket.CLOSED);
       // Tentar reconectar, mas apenas se não estiver tentando reconectar já
-      if (!reconnecting.current) {
-        reconnecting.current = true;
-        console.log("Tentando reconectar...");
-        setTimeout(() => {
-          reconnecting.current = false; // Permitir nova tentativa de reconexão
-          connectWebSocket(); // Chama a função de reconexão
-        }, 5000); // Espera 5 segundos para reconectar
-      }
+      console.log("Tentando reconectar...");
+      setTimeout(() => {
+        reconnecting.current = false; // Permitir nova tentativa de reconexão
+        connectWebSocket(); // Chama a função de reconexão
+      }, 5000); // Espera 5 segundos para reconectar
     };
 
     newSocket.onerror = (error) => {
